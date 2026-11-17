@@ -26,6 +26,8 @@
  * allocation table is protected by mem_lock() / mem_unlock(). Keep your code
  * between the two calls and do not return in between.
  */
+static unsigned int last_index = VM_USERLO_PI;
+
 unsigned int palloc()
 {
     unsigned int palloc_free_index = 0;
@@ -33,6 +35,22 @@ unsigned int palloc()
     mem_lock();
 
     // TODO [Lab 1]
+    unsigned int c;
+    unsigned int i = last_index;
+
+    for (c = 0; c < (VM_USERHI_PI - VM_USERLO_PI); c++) {
+        if (at_is_norm(i) == 1 && at_is_allocated(i) == 0) {
+            at_set_allocated(i, 1);
+            palloc_free_index = i;
+            last_index = i;
+            break;
+        }
+
+        i++;
+        if (i >= VM_USERHI_PI) {
+            i = VM_USERLO_PI;
+        }
+    }
 
     mem_unlock();
 
@@ -51,5 +69,6 @@ void pfree(unsigned int pfree_index)
 {
     mem_lock();
     // TODO [Lab 1]
+    at_set_allocated(pfree_index, 0);
     mem_unlock();
 }
